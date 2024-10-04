@@ -2,7 +2,12 @@
 # IMPORTS
 ######################################################################################################
 
+from getpass import getpass
+import hashlib
+import random
 import sqlite3 as sql
+import string
+import random
 ######################################################################################################
 ######################################################################################################
 
@@ -30,34 +35,76 @@ def createDB(db):
     conn.commit()
     conn.close()
 ######################################################################################################    
-def createTable(db, table_name):
-    conn = sql.connect(db)
-    cursor = conn.cursor()
-    query = """CREATE TABLE IF NOT EXISTS {table_name} (
-        username text,
-        url text     
-    )""".format(table_name=table_name)
-    
-    try:
-        cursor.execute(query)
-        conn.commit()
-    except sql.Error as e:
-        # Maneja el error si la consulta SQL falla
-        print(f"Error al crear la tabla: {e}")
-    finally:
-        conn.commit()
-        conn.close()
-######################################################################################################
-def insertRow(db):
+def createTables(db):
     conn = sql.connect(db)
     cursor = conn.cursor()
     
-    instruction = f"INSERT INTO password_manager VALUES ('diego', 'google.com')"
+    query = """CREATE TABLE IF NOT EXISTS secrets (
+        masterPassword_hash text not null,
+        device_secret text not null     
+    )"""
     
-    cursor.execute(instruction)
+    cursor.execute(query)
+    
+    query = """CREATE TABLE IF NOT EXISTS accounts (
+        siteName text not null,
+        siteUrl text not null,
+        email text,
+        usermane text,
+        password text not null     
+    )"""
+    
+    cursor.execute(query)
+    
     conn.commit()
     conn.close()
 
+######################################################################################################
+# def insertRow(db):
+#     conn = sql.connect(db)
+#     cursor = conn.cursor()
+    
+#     instruction = f"INSERT INTO password_manager VALUES ('diego', 'google.com')"
+    
+#     cursor.execute(instruction)
+#     conn.commit()
+#     conn.close()
+######################################################################################################
+
+def masterPassword():
+    while 1:
+        mp = getpass("¿Cuál va a ser tu contraseña maestra? --> ")
+        if mp==getpass("Repite la contraseña --> ") and mp!="":
+            break
+        print("Please try again")
+    # Hashing Master Password
+    hashed_mp = hashlib.sha512(mp.encode()).hexdigest()
+    print("Generated hash of Master Password")
+    return hashed_mp
+
+######################################################################################################
+
+def deviceSecretGenerator(length):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+######################################################################################################
+
+def secrets2DB(db):
+    conn = sql.connect(db)
+    cursor = conn.cursor()
+    
+    ds = deviceSecretGenerator(16)
+    hashed_mp = masterPassword()
+    
+    # Consulta SQL con placeholders para los valores
+    query = "INSERT INTO secrets (masterPassword_hash, device_secret) VALUES (?, ?)"
+
+    # Ejecutar la consulta con los valores
+    cursor.execute(query, (hashed_mp, ds))
+    
+    conn.commit()
+    conn.close()
+    
 ######################################################################################################
 ######################################################################################################
 
@@ -68,6 +115,7 @@ def insertRow(db):
 ######################################################################################################
 if __name__ == "__main__":
     createDB(db)
-    createTable(db, "accounts")
+    createTables(db)
+    secrets2DB(db)
 ######################################################################################################
 ######################################################################################################    
