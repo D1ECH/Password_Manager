@@ -8,6 +8,8 @@ import random
 import sqlite3 as sql
 import string
 import random
+from pathlib import Path
+
 ######################################################################################################
 ######################################################################################################
 
@@ -16,7 +18,14 @@ import random
 ######################################################################################################
 # VARIABLES GLOBALES
 ######################################################################################################
-db = "password_manager.db"
+DB_NAME = "password_manager.db"
+
+# Ruta base del directorio actual
+BASE_DIR = Path(__file__).resolve().parent
+# Ruta de la carpeta 'db'
+DB_FOLDER = BASE_DIR / 'db'
+# Ruta completa del archivo de la base de datos
+DB_PATH = DB_FOLDER / DB_NAME
 ######################################################################################################
 ######################################################################################################
 
@@ -25,9 +34,9 @@ db = "password_manager.db"
 ######################################################################################################
 # MÉTODOS Y FUNCIONES
 ######################################################################################################
-def createDB(db):
+def createDB(DB_PATH):
     try:
-        conn = sql.connect(db)
+        conn = sql.connect(DB_PATH)
     
     except sql.Error:
         print("Error open db.\n")
@@ -35,8 +44,8 @@ def createDB(db):
     conn.commit()
     conn.close()
 ######################################################################################################    
-def createTables(db):
-    conn = sql.connect(db)
+def createTables(DB_PATH):
+    conn = sql.connect(DB_PATH)
     cursor = conn.cursor()
     
     query = """CREATE TABLE IF NOT EXISTS secrets (
@@ -60,8 +69,8 @@ def createTables(db):
     conn.close()
 
 ######################################################################################################
-# def insertRow(db):
-#     conn = sql.connect(db)
+# def insertRow(DB_PATH):
+#     conn = sql.connect(DB_PATH)
 #     cursor = conn.cursor()
     
 #     instruction = f"INSERT INTO password_manager VALUES ('diego', 'google.com')"
@@ -70,7 +79,9 @@ def createTables(db):
 #     conn.commit()
 #     conn.close()
 ######################################################################################################
-
+def hash_password(mp):
+    return hashlib.sha512(mp.encode()).hexdigest()
+######################################################################################################
 def masterPassword():
     while 1:
         mp = getpass("¿Cuál va a ser tu contraseña maestra? --> ")
@@ -78,7 +89,7 @@ def masterPassword():
             break
         print("Please try again")
     # Hashing Master Password
-    hashed_mp = hashlib.sha512(mp.encode()).hexdigest()
+    hashed_mp = hash_password(mp)
     print("Generated hash of Master Password")
     return hashed_mp
 
@@ -89,8 +100,8 @@ def deviceSecretGenerator(length):
 
 ######################################################################################################
 
-def secrets2DB(db):
-    conn = sql.connect(db)
+def secrets2DB(DB_PATH):
+    conn = sql.connect(DB_PATH)
     cursor = conn.cursor()
     
     ds = deviceSecretGenerator(16)
@@ -114,8 +125,8 @@ def secrets2DB(db):
 # MAIN
 ######################################################################################################
 if __name__ == "__main__":
-    createDB(db)
-    createTables(db)
-    secrets2DB(db)
+    createDB(DB_PATH)
+    createTables(DB_PATH)
+    secrets2DB(DB_PATH)
 ######################################################################################################
 ######################################################################################################    
