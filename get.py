@@ -16,4 +16,17 @@ def retrieve(mp, ds, searchingInputs, decryptPass = False):
         query = f"SELECT * FROM accounts"
         
     else:
-        print("")
+        query = "SELECT * FROM accounts WHERE "
+        for i in searchingInputs:
+            query += f"{i} = '{searchingInputs[i]}' AND "
+        query = query[:-5]
+        
+    cursor.execute(query)
+    res = cursor.fetchall()
+    
+    if len(res) == 0 :
+        print("No hay resultados para su búsqueda")
+        return
+    
+    if(decryptPass and len(res)>1) or (not decryptPass):
+        

@@ -69,15 +69,15 @@ def createTables(DB_PATH):
     conn.close()
 
 ######################################################################################################
-# def insertRow(DB_PATH):
-#     conn = sql.connect(DB_PATH)
-#     cursor = conn.cursor()
+def insertRow(DB_PATH):
+    conn = sql.connect(DB_PATH)
+    cursor = conn.cursor()
     
-#     instruction = f"INSERT INTO password_manager VALUES ('diego', 'google.com')"
+    instruction = f"INSERT INTO accounts VALUES ('diego'    , 'google.com')"
     
-#     cursor.execute(instruction)
-#     conn.commit()
-#     conn.close()
+    cursor.execute(instruction)
+    conn.commit()
+    conn.close()
 ######################################################################################################
 def hash_password(mp):
     return hashlib.sha512(mp.encode()).hexdigest()
